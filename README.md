@@ -1,4 +1,4 @@
-![logo](logo.png)
+![logo](https://github.com/floscha/readwise-api/raw/main/logo.png)
 
 # Readwise API
 
