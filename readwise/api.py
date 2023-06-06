@@ -1,4 +1,5 @@
 from os import environ
+from time import sleep
 from typing import Final, Optional
 
 import requests
@@ -11,13 +12,18 @@ READWISE_TOKEN: Final[str] = environ["READWISE_TOKEN"]
 
 
 def _make_get_request(params: dict[str, str]) -> GetResponse:
-    json_data = requests.get(
+    http_response = requests.get(
         url="https://readwise.io/api/v3/list/",
         headers={"Authorization": f"Token {READWISE_TOKEN}"},
         params=params,
-    ).json()
+    )
+    if http_response.status_code != 429:
+        return GetResponse(**http_response.json())
 
-    return GetResponse(**json_data)
+    # Respect rate limiting of maximum 20 requests per minute (https://readwise.io/reader_api).
+    wait_time = int(http_response.headers["Retry-After"])
+    sleep(wait_time)
+    return _make_get_request(params)
 
 
 def get_documents(
