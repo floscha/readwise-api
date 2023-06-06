@@ -1,6 +1,6 @@
 from typing import Any, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Tag(BaseModel):
@@ -44,5 +44,5 @@ class GetResponse(BaseModel):
     """
 
     count: int
-    next_page_cursor: Optional[str]
+    next_page_cursor: Optional[str] = Field(..., alias="nextPageCursor")
     results: list[Document]
