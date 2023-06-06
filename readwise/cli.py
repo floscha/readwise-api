@@ -10,7 +10,7 @@ app = typer.Typer()
 
 
 @app.command()
-def list(location: str, n: Annotated[Optional[int], typer.Option("--number", "-n")] = 100) -> None:
+def list(location: str, n: Annotated[Optional[int], typer.Option("--number", "-n")] = None) -> None:
     """List documents.
 
     Params:
