@@ -23,7 +23,6 @@ def _make_get_request(params: dict[str, str]) -> GetResponse:
 def get_documents(
     location: str,
     category: Optional[str] = None,
-    page_cursor: Optional[str] = None,
 ) -> list[Document]:
     """Get a list of documents from Readwise Reader.
 
@@ -31,8 +30,6 @@ def get_documents(
         location (str): The document's location, could be one of: new, later, shortlist, archive, feed
         category (str): The document's category, could be one of: article, email, rss, highlight, note, pdf, epub,
             tweet, video
-        page_cursor (str): A string returned by a previous request to this endpoint. Use it to get the next page of
-            documents if there are too many for one request.
 
     Returns:
         A list of `Document` objects.
@@ -55,10 +52,16 @@ def get_documents(
         ):
             raise ValueError(f"Parameter 'category' cannot be of value {category!r}")
         params["category"] = category
-    if page_cursor:
-        params["pageCursor"] = page_cursor
 
-    return _make_get_request(params).results
+    results: list[Document] = []
+    while (response := _make_get_request(params)).next_page_cursor:
+        results.extend(response.results)
+        params["pageCursor"] = response.next_page_cursor
+    else:
+        # Make sure not to forget last response where `next_page_cursor` is None.
+        results.extend(response.results)
+
+    return results
 
 
 def get_document_by_id(id: str) -> Document | None:
