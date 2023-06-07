@@ -5,15 +5,16 @@ from typing import Final, Optional
 import requests
 from dotenv import load_dotenv
 
-from readwise.model import Document, GetResponse
+from readwise.model import Document, GetResponse, PostRequest, PostResponse
 
 load_dotenv()
 READWISE_TOKEN: Final[str] = environ["READWISE_TOKEN"]
+URL_BASE: Final[str] = "https://readwise.io/api/v3"
 
 
 def _make_get_request(params: dict[str, str]) -> GetResponse:
     http_response = requests.get(
-        url="https://readwise.io/api/v3/list/",
+        url=f"{URL_BASE}/list/",
         headers={"Authorization": f"Token {READWISE_TOKEN}"},
         params=params,
     )
@@ -24,6 +25,21 @@ def _make_get_request(params: dict[str, str]) -> GetResponse:
     wait_time = int(http_response.headers["Retry-After"])
     sleep(wait_time)
     return _make_get_request(params)
+
+
+def _make_post_request(payload: PostRequest) -> tuple[bool, PostResponse]:
+    http_response = requests.post(
+        url=f"{URL_BASE}/save/",
+        headers={"Authorization": f"Token {READWISE_TOKEN}"},
+        json=payload.dict(),
+    )
+    if http_response.status_code != 429:
+        return (http_response.status_code == 200, PostResponse(**http_response.json()))
+
+    # Respect rate limiting of maximum 20 requests per minute (https://readwise.io/reader_api).
+    wait_time = int(http_response.headers["Retry-After"])
+    sleep(wait_time)
+    return _make_post_request(payload)
 
 
 def get_documents(
@@ -84,3 +100,13 @@ def get_document_by_id(id: str) -> Document | None:
         return response.results[0]
     else:
         return None
+
+
+def save_document(url: str) -> tuple[bool, PostResponse]:
+    """Save a document to Readwise Reader.
+
+    Returns:
+        int: Status code of 201 or 200 if document already exist.
+        PostResponse: An object containing ID and Reader URL of the saved document.
+    """
+    return _make_post_request(PostRequest(url=url))

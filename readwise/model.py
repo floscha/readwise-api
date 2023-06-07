@@ -46,3 +46,54 @@ class GetResponse(BaseModel):
     count: int
     next_page_cursor: Optional[str] = Field(..., alias="nextPageCursor")
     results: list[Document]
+
+
+class PostRequest(BaseModel):
+    """A POST request for the Readwise API to save documents to Reader.
+
+    Fields:
+        url (str): The document's unique URL. If you don't have one, you can provide a made up value such as
+            https://yourapp.com#document1
+        html (Optional[str]): The document's content, in valid html (see examples). If you don't provide this, we will
+            try to scrape the URL you provided to fetch html from the open web.
+        should_clean_html  (Optional[bool]): Only valid when html is provided. Pass true to have us automatically
+            clean the html and parse the metadata (title/author) of the document for you. By default, this option is
+            false.
+        title (Optional[str]): The document's title, it will overwrite the original title of the document.
+        author (Optional[str]): The document's author, it will overwrite the original author (if found during the
+            parsing step).
+        summary (Optional[str]): Summary of the document.
+        published_date (Optional[str]): A datetime representing when the document was published in the ISO 8601
+            format; default timezone is UTC. Example: "2020-07-14T20:11:24+00:00"
+        image_url (Optional[str]): An image URL to use as cover image.
+        location (Optional[str]): One of: new, later, archive or feed. Default is new.
+            Represents the initial location of the document (previously called triage_status). Note: if you try to use
+            a location the user doesn't have enabled in their settings, this value will be set to their default
+            location.
+        saved_using (Optional[str]): This value represents the source of the document
+        tags (Optional[list[str]]): A list of strings containing tags, example: ["tag1", "tag2"]
+    """
+
+    url: str
+    html: Optional[str] = None
+    should_clean_html: Optional[bool] = None
+    title: Optional[str] = None
+    author: Optional[str] = None
+    summary: Optional[str] = None
+    published_date: Optional[str] = None
+    image_url: Optional[str] = None
+    location: Optional[str] = None
+    saved_using: Optional[str] = None
+    tags: Optional[list[str]] = None
+
+
+class PostResponse(BaseModel):
+    """A response from the Readwise API for POST requests.
+
+    Fields:
+        id (str): The ID of the saved document.
+        url (str): The URL for the document in the Reader app.
+    """
+
+    id: str
+    url: str

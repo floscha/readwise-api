@@ -4,7 +4,7 @@ from typing import Optional
 import typer
 from typing_extensions import Annotated
 
-from readwise import get_document_by_id, get_documents
+from readwise import get_document_by_id, get_documents, save_document
 
 app = typer.Typer()
 
@@ -37,3 +37,20 @@ def get(id: str) -> None:
         print(doc.json(indent=2))
     else:
         print(f"No document with ID {id!r} could be found.")
+
+
+@app.command()
+def save(url: str) -> None:
+    """Save a document to Reader.
+
+    Params:
+        url (str): URL to the document from where it will be scraped by Readwise.
+
+    Usage:
+        $ readwise save "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    """
+    document_already_exists, document_info = save_document(url)
+    if document_already_exists:
+        print(f"This document has already been saved earlier with ID {document_info.id!r}.")
+    else:
+        print(f"Saved new document {document_info.id!r}.")
