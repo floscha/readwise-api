@@ -35,7 +35,7 @@ readwise.get_document_by_id("<document_id>")
 
 **Save a document to Readwise Reader**
 
-``python
+```python
 readwise.save_document("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
 ```
 
